@@ -16,6 +16,10 @@ Interactive developer pet built with vanilla HTML/CSS/JS — connects to the Git
 
 ---
 
+![Commit Dragon screenshot](screenshot.png)
+
+---
+
 ## ✨ Features
 
 - Tamagotchi-style egg shell with animated glowing screen
@@ -54,7 +58,8 @@ Interactive developer pet built with vanilla HTML/CSS/JS — connects to the Git
 
 ```
 commit-dragon/
-├── index.html   # entire app — single file, zero dependencies
+├── index.html     # entire app — single file, zero dependencies
+├── screenshot.png
 ├── LICENSE
 └── README.md
 ```
