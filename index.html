@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Commit Dragon</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0b1a;--egg:#e2ccf7;--egg-shadow:#c4a0e8;
+  --screen-bg:#1a0f2e;--screen-bezel:#2a1f3d;
+  --purple:#6c63ff;--purple-light:#a78bfa;--purple-dark:#4f46e5;
+  --pink:#e84393;--orange:#f97316;--green:#22c55e;
+  --text:#f0eeff;--text2:#a5a0cc;--text3:#6b5b9a;
+  --card:rgba(255,255,255,0.06);--border:rgba(180,140,255,0.25);
+  --font:'Nunito',sans-serif;--mono:'Space Mono',monospace;
+}
+body{
+  font-family:var(--font);background:var(--bg);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:2rem 1rem 3rem;position:relative;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,0.35) 0%,transparent 100%),
+    radial-gradient(1px 1px at 82% 8%,rgba(255,255,255,0.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 55% 55%,rgba(255,255,255,0.25) 0%,transparent 100%),
+    radial-gradient(1px 1px at 8% 78%,rgba(255,255,255,0.2) 0%,transparent 100%),
+    radial-gradient(1px 1px at 92% 68%,rgba(255,255,255,0.28) 0%,transparent 100%),
+    radial-gradient(2px 2px at 72% 42%,rgba(108,99,255,0.35) 0%,transparent 100%),
+    radial-gradient(2px 2px at 22% 52%,rgba(167,139,250,0.25) 0%,transparent 100%);
+}
+body::after{
+  content:'';position:fixed;top:-150px;left:50%;transform:translateX(-50%);
+  width:500px;height:500px;pointer-events:none;z-index:0;
+  background:radial-gradient(circle,rgba(108,99,255,0.07) 0%,transparent 70%);
+}
+.app{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;}
+.page{width:100%;display:none;flex-direction:column;align-items:center;}
+.page.active{display:flex;}
+
+/* SETUP */
+.setup-title{
+  font-size:28px;font-weight:900;letter-spacing:-1px;margin-bottom:4px;text-align:center;
+  background:linear-gradient(135deg,#fff 0%,var(--purple-light) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.setup-sub{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:1px;margin-bottom:2.5rem;text-align:center;}
+.setup-egg{font-size:64px;margin-bottom:1.5rem;animation:bob 3s ease-in-out infinite;display:block;text-align:center;}
+.input-row{display:flex;gap:8px;width:100%;margin-bottom:1rem;}
+.gh-input{
+  flex:1;background:rgba(255,255,255,0.06);border:1.5px solid var(--border);
+  border-radius:14px;padding:12px 16px;font-size:14px;font-family:var(--mono);
+  color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;
+}
+.gh-input::placeholder{color:var(--text3);}
+.gh-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(108,99,255,0.15);}
+.summon-btn{
+  padding:12px 20px;background:var(--purple);color:#fff;border:none;border-radius:14px;
+  font-size:13px;font-weight:800;font-family:var(--font);cursor:pointer;white-space:nowrap;
+  transition:background 0.2s,transform 0.1s;box-shadow:0 4px 20px rgba(108,99,255,0.35);
+}
+.summon-btn:hover{background:var(--purple-dark);}
+.summon-btn:active{transform:scale(0.96);}
+.summon-btn:disabled{background:var(--text3);box-shadow:none;cursor:not-allowed;}
+.error-box{
+  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
+  border-radius:12px;padding:10px 14px;font-size:12px;color:#fca5a5;
+  font-family:var(--mono);width:100%;display:none;margin-bottom:0.75rem;
+}
+.loading-txt{font-family:var(--mono);font-size:12px;color:var(--text3);margin-top:1rem;display:none;}
+.ld{animation:blink 1.2s infinite;}
+.ld:nth-child(2){animation-delay:0.2s;}
+.ld:nth-child(3){animation-delay:0.4s;}
+
+/* EGG SHELL */
+.egg-shell{
+  width:280px;height:338px;position:relative;
+  background:var(--egg);
+  border-radius:50% 50% 48% 48% / 55% 55% 45% 45%;
+  border:3px solid var(--egg-shadow);
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  box-shadow:inset -10px -10px 0 rgba(0,0,0,0.07),inset 8px 8px 0 rgba(255,255,255,0.45),0 12px 40px rgba(108,99,255,0.2);
+  animation:eggBob 4s ease-in-out infinite;
+}
+.egg-shine{position:absolute;top:18px;left:52px;width:40px;height:22px;background:rgba(255,255,255,0.55);border-radius:50%;transform:rotate(-30deg);pointer-events:none;}
+.egg-shine2{position:absolute;top:30px;left:60px;width:18px;height:10px;background:rgba(255,255,255,0.35);border-radius:50%;transform:rotate(-30deg);pointer-events:none;}
+
+/* SCREEN */
+.screen-bezel{
+  width:196px;height:178px;margin-top:30px;
+  background:var(--screen-bezel);border-radius:20px;
+  border:3px solid #9b7fc4;position:relative;overflow:hidden;
+  box-shadow:inset 0 3px 12px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.08);
+}
+.screen{
+  position:absolute;inset:5px;background:var(--screen-bg);
+  border-radius:14px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;overflow:hidden;
+}
+.screen-stars{
+  position:absolute;inset:0;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,0.6) 0%,transparent 100%),
+    radial-gradient(1px 1px at 80% 12%,rgba(255,255,255,0.5) 0%,transparent 100%),
+    radial-gradient(1px 1px at 35% 75%,rgba(255,255,255,0.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 90% 70%,rgba(255,255,255,0.45) 0%,transparent 100%),
+    radial-gradient(1px 1px at 20% 55%,rgba(167,139,250,0.4) 0%,transparent 100%);
+}
+.screen-glow{
+  position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+  width:120px;height:120px;pointer-events:none;
+  background:radial-gradient(circle,rgba(108,99,255,0.15) 0%,transparent 70%);
+}
+.dragon-wrap{position:relative;z-index:2;animation:float 2.8s ease-in-out infinite;margin-bottom:2px;}
+.dragon-wrap.excited{animation:floatExcited 1.4s ease-in-out infinite;}
+.dragon-wrap.fed{animation:fedBounce 0.65s ease both;}
+.dragon-wrap.playing{animation:spin 0.85s ease-in-out;}
+.screen-name{font-family:var(--mono);font-size:9px;color:var(--purple-light);letter-spacing:1.5px;position:relative;z-index:2;text-transform:uppercase;}
+.screen-stage{font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:0.5px;position:relative;z-index:2;margin-top:1px;}
+.xp-track{display:flex;gap:3px;margin-top:6px;position:relative;z-index:2;}
+.xp-pip{width:7px;height:7px;border-radius:50%;background:#2a1a4a;border:1px solid #4a3470;}
+.xp-pip.on{background:var(--purple);border-color:var(--purple-light);}
+.screen-msg{
+  position:absolute;bottom:8px;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:7px;color:var(--purple-light);letter-spacing:0.5px;
+  z-index:3;opacity:0;transition:opacity 0.3s;
+}
+.screen-msg.show{opacity:1;}
+
+/* EGG LOWER */
+.egg-mid{width:220px;height:2px;background:var(--egg-shadow);margin-top:12px;border-radius:2px;opacity:0.6;}
+.egg-brand{font-family:var(--mono);font-size:9px;color:#a07ac8;letter-spacing:2.5px;text-transform:uppercase;margin-top:6px;margin-bottom:2px;}
+.egg-buttons{display:flex;gap:22px;align-items:center;padding-bottom:2px;}
+.btn-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tama-btn{
+  width:30px;height:30px;border-radius:50%;border:2px solid rgba(0,0,0,0.18);
+  cursor:pointer;transition:transform 0.12s,filter 0.12s;
+  display:flex;align-items:center;justify-content:center;font-size:12px;user-select:none;
+}
+.tama-btn:active{transform:scale(0.88);filter:brightness(0.85);}
+.btn-feed{background:radial-gradient(circle at 35% 35%,#c084fc,#9b59b6);}
+.btn-sync{background:radial-gradient(circle at 35% 35%,#818cf8,#6c63ff);}
+.btn-play{background:radial-gradient(circle at 35% 35%,#f472b6,#e84393);}
+.btn-lbl{font-family:var(--mono);font-size:8px;color:#b08fd4;letter-spacing:0.5px;}
+
+/* STATS PANEL */
+.stats-panel{width:100%;margin-top:1.25rem;display:flex;flex-direction:column;gap:8px;}
+.stats-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 6px;text-align:center;}
+.stat-val{font-size:20px;font-weight:900;color:var(--text);display:block;line-height:1;margin-bottom:3px;}
+.stat-lbl{font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.5px;}
+.vitals-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
+.vitals-title{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.vital-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.vital-row:last-child{margin-bottom:0;}
+.vital-name{font-size:11px;color:var(--text2);width:76px;flex-shrink:0;}
+.vital-track{flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;}
+.vital-fill{height:100%;border-radius:10px;width:0%;transition:width 1.2s ease;}
+.vf-streak{background:var(--orange);}
+.vf-activity{background:var(--green);}
+.vf-power{background:var(--purple-light);}
+.vital-pct{font-family:var(--mono);font-size:9px;color:var(--text3);width:26px;text-align:right;}
+.speech-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--text2);font-style:italic;text-align:center;}
+.next-tip{background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:8px 12px;font-size:11px;color:#86efac;font-family:var(--mono);text-align:center;}
+.activity-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;width:100%;}
+.activity-title{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.activity-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.activity-item:last-child{border-bottom:none;padding-bottom:0;}
+.a-dot{width:5px;height:5px;border-radius:50%;background:var(--purple);margin-top:5px;flex-shrink:0;}
+.a-text{font-size:11px;color:var(--text2);line-height:1.5;}
+.a-repo{color:var(--purple-light);font-weight:700;}
+.a-time{font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:1px;}
+.back-btn{margin-top:1.25rem;background:transparent;border:1px solid var(--border);border-radius:10px;padding:8px 20px;font-size:12px;color:var(--text3);font-family:var(--mono);cursor:pointer;transition:border-color 0.2s,color 0.2s;}
+.back-btn:hover{border-color:var(--purple);color:var(--purple-light);}
+.footer{margin-top:1rem;font-family:var(--mono);font-size:9px;color:var(--text3);text-align:center;letter-spacing:0.5px;}
+
+@keyframes bob{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-4px) rotate(1deg)}}
+@keyframes eggBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes floatExcited{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(3deg)}}
+@keyframes fedBounce{0%{transform:scale(1)}30%{transform:scale(1.28) rotate(-5deg)}65%{transform:scale(0.9) rotate(3deg)}100%{transform:scale(1) rotate(0deg)}}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="page active" id="pageSetup">
+    <p class="setup-title">Commit Dragon</p>
+    <p class="setup-sub">// your dragon grows from your commits</p>
+    <span class="setup-egg">🥚</span>
+    <div class="input-row">
+      <input class="gh-input" id="ghUser" placeholder="github username" type="text" value="SmartEdgeDM"/>
+      <button class="summon-btn" id="summonBtn" onclick="summon()">Summon</button>
+    </div>
+    <div class="error-box" id="errorBox"></div>
+    <div class="loading-txt" id="loadingTxt">hatching<span class="ld">.</span><span class="ld">.</span><span class="ld">.</span></div>
+  </div>
+
+  <div class="page" id="pageTama">
+    <div class="egg-shell" id="eggShell">
+      <div class="egg-shine"></div><div class="egg-shine2"></div>
+      <div class="screen-bezel">
+        <div class="screen" id="screen">
+          <div class="screen-stars"></div>
+          <div class="screen-glow"></div>
+          <svg id="dragonSvg" class="dragon-wrap" width="80" height="80" viewBox="0 0 80 80"></svg>
+          <p class="screen-name" id="screenName"></p>
+          <p class="screen-stage" id="screenStage"></p>
+          <div class="xp-track" id="xpTrack"></div>
+          <div class="screen-msg" id="screenMsg"></div>
+        </div>
+      </div>
+      <div class="egg-mid"></div>
+      <p class="egg-brand">commit.pet</p>
+      <div class="egg-buttons">
+        <div class="btn-wrap"><div class="tama-btn btn-feed" onclick="feed()">🍖</div><span class="btn-lbl">feed</span></div>
+        <div class="btn-wrap"><div class="tama-btn btn-sync" id="btnSync" onclick="resync()">&#8635;</div><span class="btn-lbl">sync</span></div>
+        <div class="btn-wrap"><div class="tama-btn btn-play" onclick="play()">&#9733;</div><span class="btn-lbl">play</span></div>
+      </div>
+    </div>
+
+    <div class="stats-panel">
+      <div class="stats-row">
+        <div class="stat-card"><span class="stat-val" id="sCommits">-</span><span class="stat-lbl">commits</span></div>
+        <div class="stat-card"><span class="stat-val" id="sStreak">-</span><span class="stat-lbl">streak</span></div>
+        <div class="stat-card"><span class="stat-val" id="sRepos">-</span><span class="stat-lbl">repos</span></div>
+      </div>
+      <div class="vitals-card">
+        <p class="vitals-title">// dragon vitals</p>
+        <div class="vital-row"><span class="vital-name">🔥 streak</span><div class="vital-track"><div class="vital-fill vf-streak" id="vStreak"></div></div><span class="vital-pct" id="vStreakN">0%</span></div>
+        <div class="vital-row"><span class="vital-name">💚 activity</span><div class="vital-track"><div class="vital-fill vf-activity" id="vActivity"></div></div><span class="vital-pct" id="vActivityN">0%</span></div>
+        <div class="vital-row"><span class="vital-name">💜 power</span><div class="vital-track"><div class="vital-fill vf-power" id="vPower"></div></div><span class="vital-pct" id="vPowerN">0%</span></div>
+      </div>
+      <div class="speech-card" id="speechCard"></div>
+      <div class="next-tip" id="nextTip"></div>
+      <div class="activity-card">
+        <p class="activity-title">// recent commits</p>
+        <div id="activityList"></div>
+      </div>
+      <button class="back-btn" onclick="goBack()">← change user</button>
+      <p class="footer">// public repos only · github api · last 100 events</p>
+    </div>
+  </div>
+
+</div>
+<script>
+const STAGES=[
+  {name:'Egg',min:0},{name:'Hatchling',min:5},{name:'Wyrmling',min:20},
+  {name:'Drake',min:60},{name:'Elder Dragon',min:150}
+];
+const SPEECHES={
+  0:["*cracks slightly*","push a commit to wake me!","something stirs inside..."],
+  1:["rawr! first commits taste great!","i'm hungry for more code!","every commit makes me stronger!"],
+  2:["my scales are growing stronger!","consistent commits = big dragon energy","i can feel the repos humming!"],
+  3:["i can feel your dedication!","the codebase trembles before us!","you're building something real!"],
+  4:["MAXIMUM POWER ACHIEVED","i am become dragon, destroyer of bugs","legendary coder detected"]
+};
+const FEED_MSGS=["nom nom nom!","so tasty!","more commits plz!","*happy roar*","delicious!"];
+const PLAY_MSGS=["wheee!","catch me if u can!","*zooms around*","play time!","yay!"];
+const DRAGONS=[
+  `<ellipse cx="40" cy="44" rx="22" ry="28" fill="#2d2b5f" stroke="#6366f1" stroke-width="1.5"/>
+   <ellipse cx="40" cy="44" rx="14" ry="18" fill="none" stroke="#4f46e5" stroke-width="1" stroke-dasharray="3,4"/>
+   <ellipse cx="34" cy="38" rx="3" ry="4" fill="#4f46e5" opacity="0.5"/>`,
+  `<ellipse cx="40" cy="52" rx="18" ry="16" fill="#4f46e5"/>
+   <circle cx="40" cy="34" r="13" fill="#4f46e5"/>
+   <circle cx="35" cy="31" r="3" fill="white"/><circle cx="45" cy="31" r="3" fill="white"/>
+   <circle cx="36" cy="31" r="1.5" fill="#080818"/><circle cx="46" cy="31" r="1.5" fill="#080818"/>
+   <path d="M32 24 Q28 16 24 20 Q30 22 32 28" fill="#818cf8"/>
+   <path d="M48 24 Q52 16 56 20 Q50 22 48 28" fill="#818cf8"/>`,
+  `<ellipse cx="40" cy="55" rx="20" ry="14" fill="#4f46e5"/>
+   <path d="M20 55 Q15 45 20 35 Q25 55 40 55" fill="#4f46e5"/>
+   <path d="M60 55 Q65 45 60 35 Q55 55 40 55" fill="#4f46e5"/>
+   <circle cx="40" cy="32" r="14" fill="#4f46e5"/>
+   <circle cx="34" cy="29" r="3.5" fill="white"/><circle cx="46" cy="29" r="3.5" fill="white"/>
+   <circle cx="35" cy="29" r="2" fill="#080818"/><circle cx="47" cy="29" r="2" fill="#080818"/>
+   <circle cx="35.5" cy="28.5" r="0.8" fill="white"/><circle cx="47.5" cy="28.5" r="0.8" fill="white"/>
+   <path d="M30 20 Q26 10 22 14 Q28 17 30 24" fill="#818cf8"/>
+   <path d="M50 20 Q54 10 58 14 Q52 17 50 24" fill="#818cf8"/>
+   <path d="M36 37 Q40 42 44 37" stroke="#a78bfa" stroke-width="1.5" fill="none"/>`,
+  `<ellipse cx="40" cy="56" rx="22" ry="15" fill="#3730a3"/>
+   <path d="M18 56 Q10 40 16 28 Q22 50 40 56" fill="#3730a3"/>
+   <path d="M62 56 Q70 40 64 28 Q58 50 40 56" fill="#3730a3"/>
+   <path d="M18 40 Q8 28 12 18 Q20 30 24 42" fill="#4f46e5" opacity="0.9"/>
+   <path d="M62 40 Q72 28 68 18 Q60 30 56 42" fill="#4f46e5" opacity="0.9"/>
+   <circle cx="40" cy="30" r="16" fill="#3730a3"/>
+   <circle cx="33" cy="26" r="4" fill="white"/><circle cx="47" cy="26" r="4" fill="white"/>
+   <circle cx="34" cy="26" r="2.5" fill="#f97316"/><circle cx="48" cy="26" r="2.5" fill="#f97316"/>
+   <circle cx="34.5" cy="25.5" r="1" fill="#080818"/><circle cx="48.5" cy="25.5" r="1" fill="#080818"/>
+   <path d="M32 17 Q28 6 22 10 Q30 14 32 20" fill="#6366f1"/>
+   <path d="M48 17 Q52 6 58 10 Q50 14 48 20" fill="#6366f1"/>
+   <path d="M35 36 Q40 43 45 36" stroke="#a78bfa" stroke-width="2" fill="none"/>`,
+  `<ellipse cx="40" cy="57" rx="24" ry="16" fill="#1e1b4b"/>
+   <path d="M16 57 Q6 38 10 24 Q18 48 40 57" fill="#1e1b4b"/>
+   <path d="M64 57 Q74 38 70 24 Q62 48 40 57" fill="#1e1b4b"/>
+   <path d="M16 42 Q4 24 8 10 Q18 28 22 46" fill="#3730a3" opacity="0.9"/>
+   <path d="M64 42 Q76 24 72 10 Q62 28 58 46" fill="#3730a3" opacity="0.9"/>
+   <path d="M22 38 Q14 22 18 10 Q24 26 28 40" fill="#4f46e5" opacity="0.7"/>
+   <path d="M58 38 Q66 22 62 10 Q56 26 52 40" fill="#4f46e5" opacity="0.7"/>
+   <circle cx="40" cy="28" r="18" fill="#1e1b4b"/>
+   <circle cx="32" cy="23" r="5" fill="white"/><circle cx="48" cy="23" r="5" fill="white"/>
+   <circle cx="33" cy="23" r="3" fill="#f97316"/><circle cx="49" cy="23" r="3" fill="#f97316"/>
+   <circle cx="33.5" cy="22.5" r="1.2" fill="#080818"/><circle cx="49.5" cy="22.5" r="1.2" fill="#080818"/>
+   <circle cx="34" cy="22" r="0.6" fill="white"/><circle cx="50" cy="22" r="0.6" fill="white"/>
+   <path d="M30 14 Q26 2 18 6 Q28 10 30 18" fill="#6366f1"/>
+   <path d="M50 14 Q54 2 62 6 Q52 10 50 18" fill="#6366f1"/>
+   <path d="M28 15 L24 4 L32 10" fill="#818cf8"/>
+   <path d="M52 15 L56 4 L48 10" fill="#818cf8"/>
+   <path d="M34 35 Q40 44 46 35" stroke="#a78bfa" stroke-width="2.5" fill="none"/>`
+];
+
+let currentUser='',currentStage=0,msgT=null;
+
+function getStage(c){let s=0;for(let i=0;i<STAGES.length;i++)if(c>=STAGES[i].min)s=i;return s;}
+function calcStreak(evts){
+  const days=new Set(evts.map(e=>e.created_at?.slice(0,10)).filter(Boolean));
+  const sorted=[...days].sort().reverse();
+  if(!sorted.length)return 0;
+  let streak=0,cur=new Date().toISOString().slice(0,10);
+  for(let d of sorted){if(d===cur){streak++;const dt=new Date(cur);dt.setDate(dt.getDate()-1);cur=dt.toISOString().slice(0,10);}else break;}
+  return streak;
+}
+function timeAgo(d){const m=Math.floor((Date.now()-new Date(d))/60000);if(m<60)return m+'m ago';const h=Math.floor(m/60);return h<24?h+'h ago':Math.floor(h/24)+'d ago';}
+function showMsg(txt){const el=document.getElementById('screenMsg');el.textContent=txt;el.classList.add('show');if(msgT)clearTimeout(msgT);msgT=setTimeout(()=>el.classList.remove('show'),2400);}
+function pips(pct){const t=8,f=Math.round(pct/100*t);return Array.from({length:t},(_,i)=>`<div class="xp-pip${i<f?' on':''}"></div>`).join('');}
+function setVital(id,pct){document.getElementById(id).style.width=pct+'%';document.getElementById(id+'N').textContent=pct+'%';}
+
+function renderDragon(stage,excited){
+  const s=document.getElementById('dragonSvg');
+  s.innerHTML=DRAGONS[stage];
+  s.className='dragon-wrap'+(excited?' excited':'');
+}
+
+function populate(user,commits,streak,repoCount,pushEvts,stage,xpPct){
+  renderDragon(stage,stage>=3);
+  document.getElementById('screenName').textContent=user.toUpperCase().slice(0,10);
+  document.getElementById('screenStage').textContent=STAGES[stage].name.toUpperCase()+' LV.'+(stage+1);
+  document.getElementById('xpTrack').innerHTML=pips(xpPct);
+  document.getElementById('sCommits').textContent=commits;
+  document.getElementById('sStreak').textContent=streak;
+  document.getElementById('sRepos').textContent=repoCount;
+  setTimeout(()=>{
+    setVital('vStreak',Math.min(100,streak*14));
+    setVital('vActivity',Math.min(100,pushEvts.length*3));
+    setVital('vPower',xpPct);
+  },300);
+  const sp=SPEECHES[stage];
+  document.getElementById('speechCard').textContent='"'+sp[Math.floor(Math.random()*sp.length)]+'"';
+  const nxt=STAGES[stage+1];
+  document.getElementById('nextTip').textContent=nxt?'🐉 '+(nxt.min-commits)+' more commits to evolve into '+nxt.name+'!':'🏆 Elder Dragon — max level reached!';
+  const recent=pushEvts.slice(0,5);
+  document.getElementById('activityList').innerHTML=recent.length?recent.map(e=>{
+    const repo=(e.repo?.name||'').split('/')[1]||'unknown';
+    const count=e.payload?.commits?.length||0;
+    const msg=(e.payload?.commits?.[0]?.message||'pushed commits').slice(0,55);
+    return`<div class="activity-item"><div class="a-dot"></div><div><div class="a-text">${count} commit${count!==1?'s':''} to <span class="a-repo">${repo}</span> — ${msg}${msg.length>=55?'…':''}</div><div class="a-time">${timeAgo(e.created_at)}</div></div></div>`;
+  }).join(''):'<p style="font-size:11px;color:#6b5b9a;font-family:var(--mono)">no recent push events</p>';
+}
+
+async function fetchData(user){
+  const[eR,rR]=await Promise.all([
+    fetch(`https://api.github.com/users/${user}/events/public?per_page=100`),
+    fetch(`https://api.github.com/users/${user}/repos?per_page=100&sort=pushed`)
+  ]);
+  if(!eR.ok){if(eR.status===404)throw new Error(`User "${user}" not found`);if(eR.status===403)throw new Error('Rate limit hit — try in a minute');throw new Error('GitHub API error');}
+  return{events:await eR.json(),repos:rR.ok?await rR.json():[]};
+}
+
+async function summon(){
+  const user=document.getElementById('ghUser').value.trim();
+  if(!user)return;
+  currentUser=user;
+  document.getElementById('errorBox').style.display='none';
+  document.getElementById('loadingTxt').style.display='block';
+  document.getElementById('summonBtn').disabled=true;
+  try{
+    const{events,repos}=await fetchData(user);
+    const pushEvts=events.filter(e=>e.type==='PushEvent');
+    const commits=pushEvts.reduce((s,e)=>s+(e.payload?.commits?.length||0),0);
+    const streak=calcStreak(pushEvts);
+    const stage=getStage(commits);
+    const nxt=STAGES[stage+1];
+    const xpPct=nxt?Math.min(100,Math.round(((commits-STAGES[stage].min)/(nxt.min-STAGES[stage].min))*100)):100;
+    currentStage=stage;
+    document.getElementById('pageSetup').classList.remove('active');
+    document.getElementById('pageTama').classList.add('active');
+    populate(user,commits,streak,repos.length,pushEvts,stage,xpPct);
+    setTimeout(()=>showMsg('welcome back!'),700);
+  }catch(err){
+    document.getElementById('errorBox').textContent='⚠ '+err.message;
+    document.getElementById('errorBox').style.display='block';
+  }finally{
+    document.getElementById('loadingTxt').style.display='none';
+    document.getElementById('summonBtn').disabled=false;
+  }
+}
+
+function feed(){
+  const s=document.getElementById('dragonSvg');
+  s.className='dragon-wrap fed';
+  setTimeout(()=>s.className='dragon-wrap'+(currentStage>=3?' excited':''),750);
+  showMsg(FEED_MSGS[Math.floor(Math.random()*FEED_MSGS.length)]);
+}
+
+function play(){
+  const s=document.getElementById('dragonSvg');
+  s.className='dragon-wrap playing';
+  setTimeout(()=>s.className='dragon-wrap'+(currentStage>=3?' excited':''),950);
+  showMsg(PLAY_MSGS[Math.floor(Math.random()*PLAY_MSGS.length)]);
+}
+
+async function resync(){
+  if(!currentUser)return;
+  const btn=document.getElementById('btnSync');
+  btn.style.opacity='0.5';showMsg('syncing...');
+  try{
+    const{events,repos}=await fetchData(currentUser);
+    const pushEvts=events.filter(e=>e.type==='PushEvent');
+    const commits=pushEvts.reduce((s,e)=>s+(e.payload?.commits?.length||0),0);
+    const streak=calcStreak(pushEvts);
+    const stage=getStage(commits);
+    const nxt=STAGES[stage+1];
+    const xpPct=nxt?Math.min(100,Math.round(((commits-STAGES[stage].min)/(nxt.min-STAGES[stage].min))*100)):100;
+    currentStage=stage;
+    populate(currentUser,commits,streak,repos.length,pushEvts,stage,xpPct);
+    showMsg('synced!');
+  }catch(e){showMsg('sync failed');}
+  finally{btn.style.opacity='';}
+}
+
+function goBack(){
+  document.getElementById('pageTama').classList.remove('active');
+  document.getElementById('pageSetup').classList.add('active');
+}
+
+document.getElementById('ghUser').addEventListener('keydown',e=>{if(e.key==='Enter')summon();});
+window.addEventListener('load',()=>{if(document.getElementById('ghUser').value.trim())summon();});
+</script>
+</body>
+</html>
