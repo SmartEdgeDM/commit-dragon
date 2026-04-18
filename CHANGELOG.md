@@ -4,6 +4,23 @@ All notable changes to Commit Dragon are documented here.
 
 ---
 
+## [1.5.0] — 2026-04-17
+
+### Added
+- Dragon mood system — dragon reacts based on days since last commit
+  - 😄 **Happy** — coded today, dragon is thriving
+  - 😊 **Content** — coded yesterday, still going strong
+  - 😤 **Hungry** — 3+ days without commits, dragon wants code
+  - 😩 **Starving** — 7+ days, dragon is fading
+  - 😴 **Dormant** — 14+ days, dragon has gone to sleep
+- Mood banner displayed below the egg showing current mood, label and message
+- Egg shell tint changes per mood (dims and desaturates the longer you neglect it)
+- Dragon animation changes — wiggles anxiously when hungry, slow drift when dormant
+- Screen message reflects current mood on load
+- Descending 8-bit sound plays when dragon is hungry or starving
+
+---
+
 ## [1.4.0] — 2026-04-17
 
 ### Added
@@ -46,19 +63,13 @@ All notable changes to Commit Dragon are documented here.
 
 ### Added
 - Tamagotchi-style egg shell wrapping the entire UI
-  - Royal blue egg with glowing screen, shine highlights, and bobbing animation
-  - Lime accent stripe around egg equator
-  - Three working buttons: Feed 🍖, Sync ⟳, Play ★
+- Three working buttons: Feed 🍖, Sync ⟳, Play ★
 - Screen messages appear inline on the tamagotchi display
-- Feed button triggers bounce animation with happy messages
-- Play button triggers spin animation
-- Sync button fetches live GitHub data and triggers evolution animation if levelled up
-- Dragon stage label and XP pip dots on screen
 - `commit.pet` branding on egg shell
 - `index.html` renamed from `commit-dragon.html` for GitHub Pages compatibility
 - Auto-loads username on page open
 - `README.md` with screenshot, feature list, evolution table, and Buy Me a Coffee badge
-- `.github/FUNDING.yml` — Buy Me a Coffee sponsor link (`buymeacoffee.com/smartedge`)
+- `.github/FUNDING.yml` — Buy Me a Coffee sponsor link
 
 ---
 
@@ -70,11 +81,6 @@ All notable changes to Commit Dragon are documented here.
 - Live GitHub API integration — fetches last 100 public events, no login required
 - Dragon vitals: streak, activity, and power bars
 - Recent commit feed with repo names, messages, and timestamps
-- Speech bubbles with stage-appropriate dragon personality
-- XP progress bar toward next evolution
-- Stats panel: total commits, day streak, repo count
-- Evolution track showing all 5 stages
-- Back button to change GitHub username
 - Built with zero dependencies — pure HTML, CSS & JavaScript
 
 ---
